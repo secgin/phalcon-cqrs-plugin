@@ -7,8 +7,10 @@ use Phalcon\Di\ServiceProviderInterface;
 
 class QueryDispatcherProvider implements ServiceProviderInterface
 {
+    static public string $serviceName = 'queryDispatcher';
+
     public function register(DiInterface $di): void
     {
-        $di->setShared('queryDispatcher', QueryDispatcher::class);
+        $di->setShared(self::$serviceName, QueryDispatcher::class);
     }
 }

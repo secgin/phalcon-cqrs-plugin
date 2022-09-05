@@ -181,7 +181,7 @@ abstract class AbstractQuery
     public function __call($name, $arguments)
     {
         if ($name == 'handle')
-            return Di::getDefault()->get('queryDispatcher')->dispatch($this);
+            return Di::getDefault()->get(QueryDispatcherProvider::$serviceName)->dispatch($this);
 
         return null;
     }

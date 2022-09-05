@@ -163,7 +163,7 @@ abstract class AbstractCommand
     public function __call($name, $arguments)
     {
         if ($name == 'handle')
-            return Di::getDefault()->get('commandDispatcher')->dispatch($this);
+            return Di::getDefault()->get(CommandDispatcherProvider::$serviceName)->dispatch($this);
 
         return null;
     }
