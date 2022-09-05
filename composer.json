@@ -1,10 +1,11 @@
 {
     "name": "secgin/phalcon-cqrs-plugin",
     "description": "Phalcon Framework CQRS Plugin",
+    "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "YG\\Phalcon\\": "src/"
+            "YG\\Phalcon\\Cqrs\\": "src/"
         }
     },
     "authors": [
@@ -12,7 +13,9 @@
             "name": "Segçgin"
         }
     ],
-    "require": {},
+    "require": {
+        "ext-phalcon": "~4.1.2"
+    },
     "require-dev": {
         "phalcon/ide-stubs": "~4.1"
     }

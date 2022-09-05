@@ -1,12 +1,12 @@
 <?php
 
-namespace YG\Phalcon\Query\Db\Handler;
+namespace YG\Phalcon\Cqrs\Query\Db\Handler;
 
 use Phalcon\Di\Injectable;
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Paginator\Adapter\QueryBuilder;
 use Phalcon\Paginator\RepositoryInterface;
-use YG\Phalcon\Query\Db\AbstractFindPaginationDbQuery;
+use YG\Phalcon\Cqrs\Query\Db\AbstractFindPaginationDbQuery;
 
 class FindPaginationDbQueryHandler extends Injectable
 {

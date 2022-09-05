@@ -1,6 +1,6 @@
 <?php
 
-namespace YG\Phalcon\Query;
+namespace YG\Phalcon\Cqrs\Query;
 
 interface QueryDispatcherInterface
 {

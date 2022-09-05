@@ -1,11 +1,11 @@
 <?php
 
-namespace YG\Phalcon\Query\Db\Handler;
+namespace YG\Phalcon\Cqrs\Query\Db\Handler;
 
 use Phalcon\Di\Injectable;
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\ModelInterface;
-use YG\Phalcon\Query\Db\AbstractFindFirstDbQuery;
+use YG\Phalcon\Cqrs\Query\Db\AbstractFindFirstDbQuery;
 
 final class FindFirstDbQueryHandler extends Injectable
 {

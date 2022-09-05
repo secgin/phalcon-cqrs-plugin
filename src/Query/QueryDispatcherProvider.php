@@ -1,6 +1,6 @@
 <?php
 
-namespace YG\Phalcon\Query;
+namespace YG\Phalcon\Cqrs\Query;
 
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\ServiceProviderInterface;

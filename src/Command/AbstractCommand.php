@@ -1,6 +1,6 @@
 <?php
 
-namespace YG\Phalcon\Command;
+namespace YG\Phalcon\Cqrs\Command;
 
 use Phalcon\Di;
 use ReflectionClass;

@@ -1,8 +1,8 @@
 <?php
 
-namespace YG\Phalcon\Query\Db;
+namespace YG\Phalcon\Cqrs\Query\Db;
 
-use YG\Phalcon\Query\AbstractQuery;
+use YG\Phalcon\Cqrs\Query\AbstractQuery;
 
 abstract class AbstractFindDbQuery extends AbstractQuery
 {

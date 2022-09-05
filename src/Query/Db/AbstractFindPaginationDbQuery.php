@@ -1,8 +1,8 @@
 <?php
 
-namespace YG\Phalcon\Query\Db;
+namespace YG\Phalcon\Cqrs\Query\Db;
 
-use YG\Phalcon\Query\AbstractPaginationQuery;
+use YG\Phalcon\Cqrs\Query\AbstractPaginationQuery;
 
 abstract class AbstractFindPaginationDbQuery extends AbstractPaginationQuery
 {

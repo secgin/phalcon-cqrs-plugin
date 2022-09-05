@@ -1,6 +1,6 @@
 <?php
 
-namespace YG\Phalcon\Command;
+namespace YG\Phalcon\Cqrs\Command;
 
 use Error;
 use Exception;
@@ -8,12 +8,12 @@ use Phalcon\Di\Injectable;
 use Phalcon\Events\EventsAwareInterface;
 use Phalcon\Events\ManagerInterface;
 use ReflectionClass;
-use YG\Phalcon\Command\Db\AbstractCreateDbCommand;
-use YG\Phalcon\Command\Db\AbstractDeleteDbCommand;
-use YG\Phalcon\Command\Db\AbstractUpdateDbCommand;
-use YG\Phalcon\Command\Db\Handler\CreateDbCommandHandler;
-use YG\Phalcon\Command\Db\Handler\DeleteDbCommandHandler;
-use YG\Phalcon\Command\Db\Handler\UpdateDbCommandHandler;
+use YG\Phalcon\Cqrs\Command\Db\AbstractCreateDbCommand;
+use YG\Phalcon\Cqrs\Command\Db\AbstractDeleteDbCommand;
+use YG\Phalcon\Cqrs\Command\Db\AbstractUpdateDbCommand;
+use YG\Phalcon\Cqrs\Command\Db\Handler\CreateDbCommandHandler;
+use YG\Phalcon\Cqrs\Command\Db\Handler\DeleteDbCommandHandler;
+use YG\Phalcon\Cqrs\Command\Db\Handler\UpdateDbCommandHandler;
 
 final class CommandDispatcher extends Injectable implements CommandDispatcherInterface, EventsAwareInterface
 {
@@ -34,12 +34,10 @@ final class CommandDispatcher extends Injectable implements CommandDispatcherInt
             if ($commandHandler == null)
                 throw new Error('Not Found Command Handler');
 
-            $methodName = Reflection::getCommandHandlerMethodName($commandHandler, $command) ?? 'handle';
-
-            if (!method_exists($commandHandler, $methodName))
+            if (!method_exists($commandHandler, 'handle'))
                 throw new Error('Not Found Command Handler Method');
 
-            $result = $commandHandler->$methodName($command);
+            $result = $commandHandler->handle($command);
 
             if ($this->eventsManager and $result->isSuccess())
             {

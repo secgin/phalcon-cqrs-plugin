@@ -1,10 +1,10 @@
 <?php
 
-namespace YG\Phalcon\Command\Db\Handler;
+namespace YG\Phalcon\Cqrs\Command\Db\Handler;
 
 use Error;
-use YG\Phalcon\Command\CommandResult;
-use YG\Phalcon\Command\Db\AbstractCreateDbCommand;
+use YG\Phalcon\Cqrs\Command\CommandResult;
+use YG\Phalcon\Cqrs\Command\Db\AbstractCreateDbCommand;
 
 final class CreateDbCommandHandler
 {

@@ -1,16 +1,16 @@
 <?php
 
-namespace YG\Phalcon\Query;
+namespace YG\Phalcon\Cqrs\Query;
 
 use Error;
 use Phalcon\Annotations\Collection;
 use Phalcon\Di\Injectable;
-use YG\Phalcon\Query\Db\AbstractFindDbQuery;
-use YG\Phalcon\Query\Db\AbstractFindFirstDbQuery;
-use YG\Phalcon\Query\Db\AbstractFindPaginationDbQuery;
-use YG\Phalcon\Query\Db\Handler\FindDbQueryHandler;
-use YG\Phalcon\Query\Db\Handler\FindFirstDbQueryHandler;
-use YG\Phalcon\Query\Db\Handler\FindPaginationDbQueryHandler;
+use YG\Phalcon\Cqrs\Query\Db\AbstractFindDbQuery;
+use YG\Phalcon\Cqrs\Query\Db\AbstractFindFirstDbQuery;
+use YG\Phalcon\Cqrs\Query\Db\AbstractFindPaginationDbQuery;
+use YG\Phalcon\Cqrs\Query\Db\Handler\FindDbQueryHandler;
+use YG\Phalcon\Cqrs\Query\Db\Handler\FindFirstDbQueryHandler;
+use YG\Phalcon\Cqrs\Query\Db\Handler\FindPaginationDbQueryHandler;
 
 final class QueryDispatcher extends Injectable implements QueryDispatcherInterface
 {
@@ -28,12 +28,10 @@ final class QueryDispatcher extends Injectable implements QueryDispatcherInterfa
         if ($queryHandler == null)
             throw new Error('Not Found Query Handler');
 
-        $methodName = Reflection::getQueryHandlerMethodName($queryHandler, $query) ?? 'handle';
-
         if (!method_exists($queryHandler, 'handle'))
             throw new Error('Not Found Query Handler Method');
 
-        return $queryHandler->$methodName($query);
+        return $queryHandler->handle($query);
     }
 
     public function register(string $queryClass, string $queryHandlerClass): void

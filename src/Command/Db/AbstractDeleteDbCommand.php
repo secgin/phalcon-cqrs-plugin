@@ -1,8 +1,8 @@
 <?php
 
-namespace YG\Phalcon\Command\Db;
+namespace YG\Phalcon\Cqrs\Command\Db;
 
-use YG\Phalcon\Command\AbstractCommand;
+use YG\Phalcon\Cqrs\Command\AbstractCommand;
 
 abstract class AbstractDeleteDbCommand extends AbstractCommand
 {
