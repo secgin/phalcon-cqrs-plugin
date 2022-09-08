@@ -33,6 +33,15 @@ final class DeleteDbCommandHandler
         if ($entity->delete())
             return CommandResult::success($primaryFieldValue);
 
-        return CommandResult::fail($entity);
+        $messages = [];
+        foreach ($entity->getMessages() as $message)
+        {
+            if (is_array($message->getField()))
+                $messages[] = $message->getMessage();
+            else
+                $messages[$message->getField()] = $message->getMessage();
+        }
+
+        return CommandResult::fail($messages);
     }
 }

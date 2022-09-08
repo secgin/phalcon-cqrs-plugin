@@ -82,11 +82,6 @@ abstract class AbstractQuery
 
         $data = [];
         $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
-        $properties = array_filter(
-            $properties,
-            function(ReflectionProperty $property) {
-                return !in_array($property->name, ['page', 'limit', 'sort']);
-            });
 
         foreach ($properties as $property)
         {
