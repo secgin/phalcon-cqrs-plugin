@@ -147,6 +147,11 @@ abstract class AbstractQuery
                         }
                     }
                 }
+                else
+                {
+                    if ($value === '' and $propertyType != 'string')
+                        $value = null;
+                }
 
                 $args[$name] = $value;
             }

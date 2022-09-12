@@ -140,6 +140,11 @@ abstract class AbstractCommand
                                 break;
                         }
                     }
+                    else
+                    {
+                        if ($value === '' and $propertyType != 'string')
+                            $value = null;
+                    }
                 }
 
                 $args[$name] = $value;
