@@ -7,7 +7,6 @@ use Exception;
 use Phalcon\Di\Injectable;
 use Phalcon\Events\EventsAwareInterface;
 use Phalcon\Events\ManagerInterface;
-use ReflectionClass;
 use YG\Phalcon\Cqrs\Command\Db\AbstractCreateDbCommand;
 use YG\Phalcon\Cqrs\Command\Db\AbstractDeleteDbCommand;
 use YG\Phalcon\Cqrs\Command\Db\AbstractUpdateDbCommand;
@@ -17,11 +16,7 @@ use YG\Phalcon\Cqrs\Command\Db\Handler\UpdateDbCommandHandler;
 
 final class CommandDispatcher extends Injectable implements CommandDispatcherInterface, EventsAwareInterface
 {
-    private array
-        $handlers = [],
-        $handlerClasses = [];
-
-    private ?string $commandHandlerNamespace = null;
+    private array $handlers = [];
 
     protected ?ManagerInterface $eventsManager = null;
 
@@ -31,6 +26,7 @@ final class CommandDispatcher extends Injectable implements CommandDispatcherInt
         try
         {
             $commandHandler = $this->getCommandHandler($command);
+
             if ($commandHandler == null)
                 throw new Error('Not Found Command Handler');
 
@@ -40,43 +36,15 @@ final class CommandDispatcher extends Injectable implements CommandDispatcherInt
             $result = $commandHandler->handle($command);
 
             if ($this->eventsManager and $result->isSuccess())
-            {
-                $this->eventsManager->fire(
-                    'commandDispatcher:afterDispatch',
-                    $this,
-                    [
-                        'command' => $command,
-                        'result' => $result->getData()
-                    ]);
-            }
+                $this->eventsManager->fire('commandDispatcher:afterDispatch', $command);
 
             return $result;
         }
         catch (Exception|Error $ex)
         {
-            return CommandResult::fail('İşlem sırasında bir hata oluştu.');
+            return CommandResult::fail('İşlem sırasında hata oluştu.');
         }
     }
-
-    public function register(string $commandClass, string $commandHandlerClass): void
-    {
-        $this->handlerClasses[$commandClass] = $commandHandlerClass;
-    }
-
-    public function registerFromArray(array $handlers): void
-    {
-        $this->handlerClasses = array_merge($this->handlerClasses, $handlers);
-    }
-
-    /**
-     * Komut işleyicisinin otomatik yüklenmesi için gerekli namespace eki.
-     * Komut işleyicisi register metodotları ile kayıt edilirse gerek duyulmaz.
-     */
-    public function setNamespace(string $commandHandlerNamespace)
-    {
-        $this->commandHandlerNamespace = $commandHandlerNamespace;
-    }
-
 
     private function getCommandHandler(AbstractCommand $command)
     {
@@ -84,39 +52,6 @@ final class CommandDispatcher extends Injectable implements CommandDispatcherInt
 
         if (array_key_exists($commandClass, $this->handlers))
             return $this->handlers[$commandClass];
-
-        if (array_key_exists($commandClass, $this->handlerClasses))
-        {
-            $commandHandlerClass = $this->handlerClasses[$commandClass];
-            $this->handlers[$commandClass] = new $commandHandlerClass;
-            return $this->handlers[$commandClass];
-        }
-
-        $annotations = $this->annotations->get($commandClass);
-        $classAnnotations = $annotations->getClassAnnotations();
-        if ($classAnnotations and $classAnnotations->has('Handler'))
-        {
-            $commandHandlerClass = $classAnnotations->get('Handler')->getArgument(0);
-
-            if (class_exists($commandHandlerClass))
-            {
-                $this->handlers[$commandClass] = new $commandHandlerClass;
-                return $this->handlers[$commandClass];
-            }
-        }
-
-        if ($this->commandHandlerNamespace != null)
-        {
-            $reflection = new ReflectionClass($command);
-            $commandClassShortName = $reflection->getShortName();
-            $commandHandlerClass = $this->commandHandlerNamespace . '\\' . $commandClassShortName . 'CommandHandler';
-
-            if (class_exists($commandHandlerClass))
-            {
-                $this->handlers[$commandClass] = new $commandHandlerClass;
-                return $this->handlers[$commandClass];
-            }
-        }
 
         $commandHandlerClass = str_replace('Commands\\', 'CommandHandlers\\', $commandClass) . "CommandHandler";
         if (class_exists($commandHandlerClass))

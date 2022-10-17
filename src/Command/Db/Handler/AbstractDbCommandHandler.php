@@ -3,10 +3,11 @@
 namespace YG\Phalcon\Cqrs\Command\Db\Handler;
 
 use Exception;
+use Phalcon\Di\Injectable;
 use Phalcon\Mvc\Model\Transaction\Manager;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 
-abstract class AbstractDbCommandHandler
+abstract class AbstractDbCommandHandler extends Injectable
 {
     /**
      * @throws Exception

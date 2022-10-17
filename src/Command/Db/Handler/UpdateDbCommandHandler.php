@@ -33,15 +33,6 @@ final class UpdateDbCommandHandler
         if ($entity->update())
             return CommandResult::success($primaryFieldValue);
 
-        $messages = [];
-        foreach ($entity->getMessages() as $message)
-        {
-            if (is_array($message->getField()))
-                $messages[] = $message->getMessage();
-            else
-                $messages[$message->getField()] = $message->getMessage();
-        }
-
-        return CommandResult::fail($messages);
+        return CommandResult::fail($entity->getMessages());
     }
 }

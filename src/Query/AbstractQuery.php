@@ -12,64 +12,155 @@ use ReflectionProperty;
  */
 abstract class AbstractQuery
 {
-    public function assign(array $data, array $columnMap = [])
+    static public function create(array $data = [], array $columnMap = []): self
     {
-        $reflection = new ReflectionClass($this);
+        $query = self::newInstance($data, $columnMap);
+        $query->assign($data, $columnMap);
+        return $query;
+    }
 
-        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
+    /**
+     * @throws ReflectionException
+     */
+    static private function newInstance(array $data, array $columnMap = []): self
+    {
+        $reflection = new ReflectionClass(get_called_class());
+        $constructorMethod = $reflection->getConstructor();
 
-        foreach ($properties as $property)
+        $args = [];
+        if ($constructorMethod)
         {
-            $name = $property->name;
-            $fieldName = array_key_exists($name, $columnMap)
-                ? $columnMap[$name]
-                : $name;
-            $value = $data[$fieldName] ?? null;
-
-            $allowsNull = $property->getType()->allowsNull();
-
-            if ($value == null and $allowsNull)
-                $value = null;
-            else
+            foreach ($constructorMethod->getParameters() as $parameter)
             {
+                $name = array_key_exists($parameter->name, $columnMap)
+                    ? $columnMap[$parameter->name]
+                    : $parameter->name;
 
-                if (
-                    $value == null and
-                    $property->isDefault() and
-                    (
-                        $property->isProtected() or
-                        (
-                            $property->isPublic() and
-                            $property->isInitialized($this)
-                        )
-                    )
-                )
+                $value = $data[$name] ?? null;
+
+                if ($value === null)
+                {
+                    $value = $parameter->isDefaultValueAvailable()
+                        ? $parameter->getDefaultValue()
+                        : null;
+                }
+
+                if ($value === null and $parameter->allowsNull())
+                {
+                    $args[$name] = null;
                     continue;
+                }
 
-                $propertyTypeName = $property->getType()->getName();
-                switch ($propertyTypeName)
+                $parameterTypeName = $parameter->getType()->getName() ?? null;
+                switch ($parameterTypeName)
                 {
                     case 'bool':
-                        $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
                         settype($value, 'bool');
                         break;
                     case 'int':
-                        $value = filter_var($value, FILTER_VALIDATE_INT);
                         settype($value, 'int');
                         break;
                     case 'float':
-                        $value = filter_var($value, FILTER_VALIDATE_FLOAT);
                         settype($value, 'float');
+                        break;
+                    case 'array':
+                        settype($value, 'array');
                         break;
                     case 'string':
                         settype($value, 'string');
                         break;
                 }
-            }
 
-            $this->$name = $value;
+                $args[$name] = $value;
+            }
         }
 
+        return $reflection->newInstanceArgs($args);
+    }
+
+    public function assign(array $data, array $columnMap = [])
+    {
+        $reflection = new ReflectionClass($this);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
+
+        foreach ($properties as $property)
+        {
+            $propertyName = $property->name;
+            $propertyTypeName = null;
+            $allowsNull = true;
+
+            if ($property->getType() != null)
+            {
+                $propertyTypeName = $property->getType()->getName();
+                $allowsNull = $property->getType()->allowsNull();
+            }
+
+            $fieldName = array_key_exists($propertyName, $columnMap)
+                ? $columnMap[$propertyName]
+                : $propertyName;
+
+
+            if (!array_key_exists($fieldName, $data))
+            {
+                if (!$property->isPublic())
+                    $property->setAccessible(true);
+
+                if ($property->isInitialized($this))
+                    continue;
+
+                if ($allowsNull)
+                {
+                    $value = null;
+                }
+                else
+                {
+                    switch ($propertyTypeName)
+                    {
+                        case 'bool':
+                            $value = false;
+                            break;
+                        case 'int':
+                        case 'float':
+                            $value = 0;
+                            break;
+                        case 'array':
+                            $value = [];
+                            break;
+                        case 'string':
+                            $value = '';
+                            break;
+                        default:
+                            $value = null;
+                    }
+                }
+
+                $this->$propertyName = $value;
+                continue;
+            }
+
+            $value = $data[$fieldName];
+
+            switch ($propertyTypeName)
+            {
+                case 'bool':
+                    settype($value, 'bool');
+                    break;
+                case 'int':
+                    settype($value, 'int');
+                    break;
+                case 'float':
+                    settype($value, 'float');
+                    break;
+                case 'string':
+                    settype($value, 'string');
+                    break;
+                case 'array':
+                    settype($value, 'array');
+                    break;
+            }
+
+            $this->$propertyName = $value;
+        }
     }
 
     public function getData(): array
@@ -96,68 +187,6 @@ abstract class AbstractQuery
         }
 
         return $data;
-    }
-
-    static public function create(array $data = [], array $columnMap = []): self
-    {
-        $query = self::newInstance($data, $columnMap);
-        $query->assign($data, $columnMap);
-
-        return $query;
-    }
-
-    /**
-     * @throws ReflectionException
-     */
-    static private function newInstance(array $data, array $columnMap = []): self
-    {
-        $reflection = new ReflectionClass(get_called_class());
-        $constructorMethod = $reflection->getConstructor();
-
-        $args = [];
-        if ($constructorMethod)
-        {
-            foreach ($constructorMethod->getParameters() as $parameter)
-            {
-                $name = array_key_exists($parameter->name, $columnMap)
-                    ? $columnMap[$parameter->name]
-                    : $parameter->name;
-                $value = $data[$name] ?? null;
-
-                if ($value == null)
-                {
-                    $property = $reflection->getProperty($name);
-                    $propertyType = $property->getType()->getName();
-                    $allowsNull = $property->getType()->allowsNull();
-
-                    if (!$allowsNull)
-                    {
-                        switch ($propertyType)
-                        {
-                            case 'bool':
-                                $value = false;
-                                break;
-                            case 'int':
-                            case 'float':
-                                $value = 0;
-                                break;
-                            case 'string':
-                                $value = '';
-                                break;
-                        }
-                    }
-                }
-                else
-                {
-                    if ($value === '' and $propertyType != 'string')
-                        $value = null;
-                }
-
-                $args[$name] = $value;
-            }
-        }
-
-        return $reflection->newInstanceArgs($args);
     }
 
     public function __get($name)

@@ -2,35 +2,32 @@
 
 namespace YG\Phalcon\Cqrs\Command;
 
+use Phalcon\Messages\Message;
+
 final class CommandResult
 {
     private bool $success;
 
-    private ?string
-        $message,
-        $id;
+    private ?string $id;
 
     /**
-     * @var string[]
+     * @var Message[]
      */
     private array $messages = [];
 
     /**
      * @param bool                 $success
-     * @param string|string[]|null $message
+     * @param string|Message[]|null $message
      * @param                      $id
      */
     private function __construct(bool $success, $message, $id)
     {
         $this->success = $success;
 
-        if (is_array($message))
-        {
+        if (is_string($message))
+            $this->messages[] = new Message($message);
+        else if (is_array($message))
             $this->messages = $message;
-            $this->message = join(PHP_EOL, $message);
-        }
-        else
-            $this->message = $message;
 
         $this->id = $id;
     }
@@ -63,9 +60,12 @@ final class CommandResult
 
     public function getMessage(): string
     {
-        return $this->message ?? '';
+        return join('.' . PHP_EOL, $this->messages);
     }
 
+    /**
+     * @return Message[]
+     */
     public function getMessages(): array
     {
         return $this->messages;

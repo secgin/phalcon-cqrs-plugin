@@ -19,15 +19,6 @@ final class CreateDbCommandHandler
         if ($model->create())
             return CommandResult::success($model->id);
 
-        $messages = [];
-        foreach ($model->getMessages() as $message)
-        {
-            if (is_array($message->getField()))
-                $messages[] = $message->getMessage();
-            else
-                $messages[$message->getField()] = $message->getMessage();
-        }
-
-        return CommandResult::fail($messages);
+        return CommandResult::fail($model->getMessages());
     }
 }

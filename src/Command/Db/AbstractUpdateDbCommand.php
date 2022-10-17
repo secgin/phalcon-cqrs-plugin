@@ -4,6 +4,10 @@ namespace YG\Phalcon\Cqrs\Command\Db;
 
 use YG\Phalcon\Cqrs\Command\AbstractCommand;
 
+/**
+ * @property string $modelClass
+ * @property string $primaryField
+ */
 abstract class AbstractUpdateDbCommand extends AbstractCommand
 {
     private string
