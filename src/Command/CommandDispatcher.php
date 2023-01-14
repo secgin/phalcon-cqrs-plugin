@@ -42,6 +42,9 @@ final class CommandDispatcher extends Injectable implements CommandDispatcherInt
         }
         catch (Exception|Error $ex)
         {
+            if ($this->eventsManager)
+                $this->eventsManager->fire('commandDispatcher:fail', $command, $ex);
+
             return CommandResult::fail('İşlem sırasında hata oluştu.');
         }
     }
