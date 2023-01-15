@@ -2,64 +2,60 @@
 
 namespace YG\Phalcon\Cqrs\Command\Db;
 
-use Error;
-use YG\Phalcon\Cqrs\Command\CommandResult;
+use Phalcon\Exception;
+use YG\Phalcon\Cqrs\Command\Result;
+use YG\Phalcon\Cqrs\Command\ResultInterface;
 
-abstract class AbstractUpdateDbCommand extends AbstractDbCommand
+abstract class AbstractDbUpdateCommand extends AbstractDbCommand
 {
-    private string
-        $modelClass,
-        $primaryField;
+    use ModelTrait;
 
-    protected function setModelClass(string $modelClass): void
+    final protected function execute(): ResultInterface
     {
-        $this->modelClass = $modelClass;
-    }
+        if (method_exists($this, 'initialize'))
+            $this->initialize();
 
-    protected function setPrimaryField(string $primaryField): void
-    {
-        $this->primaryField = $primaryField;
-    }
+        $this->isValid();
 
-    final public function execute(): CommandResult
-    {
-        $modelClass = $this->modelClass;
-        if (!class_exists($modelClass))
-            throw new Error('Model class not found: ' . $modelClass);
+        $modelClass = $this->getModelName();
+        $primaryKey = $this->getPrimaryKey();
+        $primaryKeyValue = $this->$primaryKey;
 
-        $primaryField = $this->primaryField;
-        if ($primaryField == '')
-            throw new Error('Primary field not found');
+        $entity = $modelClass::findFirst($primaryKeyValue);
+        if (!$entity)
+            return Result::fail('Entity not found');
+
 
         $data = $this->getData();
-
-        $primaryFieldValue = $data[$primaryField] ?? null;
-        if ($primaryFieldValue == null)
-            throw new Error('Primary field value is not set');
-        unset($data[$primaryField]);
-
-        $entity = $modelClass::findFirst($primaryFieldValue);
-        if (!$entity)
-            return CommandResult::fail('Entity not found');
-
+        unset($data[$primaryKey]);
         $entity->assign($data);
 
-        $this->beforeExecute($entity);
+        if (method_exists($this, 'beforeExecute'))
+            $this->beforeExecute($entity);
 
         if ($entity->update())
         {
-            $this->afterExecute($entity);
-            return CommandResult::success($primaryFieldValue);
+            if (method_exists($this, 'afterExecute'))
+                $this->afterExecute($entity);
+
+            return Result::success();
         }
 
-        return CommandResult::fail($entity->getMessages());
+        return Result::fail($entity->getMessages());
     }
 
-    protected function beforeExecute($entity): void
+    private function isValid(): void
     {
-    }
+        $modelClass = $this->getModelName();
+        if ($modelClass == null or !class_exists($modelClass))
+            throw new Exception('Model class not found: ' . $modelClass);
 
-    protected function afterExecute($entity): void
-    {
+        $primaryKey = $this->getPrimaryKey();
+        if (!$primaryKey)
+            throw new Exception('Primary key not found on model');
+
+        $primaryFieldValue = $this->primaryKey;
+        if ($primaryFieldValue == null)
+            throw new Exception('Primary field value is not set');
     }
 }

@@ -2,13 +2,16 @@
 
 namespace YG\Phalcon\Cqrs\Command;
 
+use Phalcon\Exception;
 use Phalcon\Messages\Message;
 
-final class CommandResult implements CommandResultInterface
+final class Result implements ResultInterface
 {
     private bool $success;
 
     private ?string $id;
+
+    private Exception $exception;
 
     /**
      * @var Message[]
@@ -16,9 +19,9 @@ final class CommandResult implements CommandResultInterface
     private array $messages = [];
 
     /**
-     * @param bool                 $success
+     * @param bool                  $success
      * @param string|Message[]|null $message
-     * @param                      $id
+     * @param                       $id
      */
     private function __construct(bool $success, $message, $id)
     {
@@ -34,18 +37,20 @@ final class CommandResult implements CommandResultInterface
 
     static public function success(?string $id = null): self
     {
-        return new CommandResult(true, null, $id);
+        return new Result(true, null, $id);
     }
 
     /**
      * @param string|string[]|null $message
-     * @param string|null          $id
+     * @param Exception|null       $exception
      *
      * @return static
      */
-    static public function fail($message, ?string $id = null): self
+    static public function fail($message, Exception $exception = null): self
     {
-        return new CommandResult(false, $message, $id);
+        $result = new Result(false, $message, null);
+        $result->exception = $exception;
+        return $result;
     }
 
     public function isSuccess(): bool
@@ -74,6 +79,11 @@ final class CommandResult implements CommandResultInterface
     public function getId(): ?string
     {
         return $this->id;
+    }
+
+    public function getException(): ?Exception
+    {
+        return $this->exception ?? null;
     }
 
     public function __get($name)

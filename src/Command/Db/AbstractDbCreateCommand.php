@@ -2,43 +2,30 @@
 
 namespace YG\Phalcon\Cqrs\Command\Db;
 
-use Error;
-use YG\Phalcon\Cqrs\Command\CommandResult;
+use YG\Phalcon\Cqrs\Command\Result;
+use YG\Phalcon\Cqrs\Command\ResultInterface;
 
-abstract class AbstractCreateDbCommand extends AbstractDbCommand
+abstract class AbstractDbCreateCommand extends AbstractDbCommand
 {
-    private string $modelClass;
+    use ModelTrait;
 
-    protected function setModelClass(string $modelClass): void
+    final protected function execute(): ResultInterface
     {
-        $this->modelClass = $modelClass;
-    }
+        if (method_exists($this, 'initialize'))
+            $this->initialize();
 
-    final public function execute(): CommandResult
-    {
-        $modelClass = $this->modelClass;
-        if (!class_exists($modelClass))
-            throw new Error('Model not found: ' . $modelClass);
+        $entity = $this->getModel($this->getData());
 
-        $entity = new $modelClass();
-        $entity->assign($this->getData());
-
-        $this->beforeExecute($entity);
+        if (method_exists($this, 'beforeExecute'))
+            $this->beforeExecute($entity);
 
         if ($entity->create())
         {
-            $this->afterExecute($entity);
-            return CommandResult::success($entity->id);
+            if (method_exists($this, 'afterExecute'))
+                $this->afterExecute($entity);
+
+            return Result::success($entity->id);
         }
-
-        return CommandResult::fail($entity->getMessages());
-    }
-
-    protected function beforeExecute($entity): void
-    {
-    }
-
-    protected function afterExecute($entity): void
-    {
+        return Result::fail($entity->getMessages());
     }
 }

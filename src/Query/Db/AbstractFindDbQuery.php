@@ -2,19 +2,24 @@
 
 namespace YG\Phalcon\Cqrs\Query\Db;
 
-use YG\Phalcon\Cqrs\Query\AbstractQuery;
+use Phalcon\Exception;
+use Phalcon\Mvc\Model\Criteria;
+use Phalcon\Mvc\Model\ResultsetInterface;
 
-abstract class AbstractFindDbQuery extends AbstractQuery
+abstract class AbstractFindDbQuery extends AbstractDbQuery
 {
-    private string $modelClass;
+    use ModelTrait;
 
-    protected function setModelClass(string $modelClass): void
+    final protected function fetch(): ResultsetInterface
     {
-        $this->modelClass = $modelClass;
-    }
+        if (method_exists($this, 'initialize'))
+            $this->initialize();
 
-    protected function getModelClass(): string
-    {
-        return $this->modelClass;
+        $modelClass = $this->getModelName();
+        if (!class_exists($modelClass))
+            throw new Exception('Model not found: ' . $modelClass);
+
+        return Criteria::fromInput($this->getDI(), $this->getModelName(), $this->getData())
+            ->execute();
     }
 }
