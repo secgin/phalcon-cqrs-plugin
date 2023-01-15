@@ -10,7 +10,7 @@ use Phalcon\Events\ManagerInterface as EventsManagerInterface;
 
 class Manager implements ManagerInterface, InjectionAwareInterface, EventsAwareInterface
 {
-    public function notifyEvent(string $eventName, AbstractCommand $command, ResultInterface $result): void
+    public function notifyEvent(string $eventName, AbstractCommand $command, CommandResultInterface $result): void
     {
         if (isset($this->eventsManager))
             $this->eventsManager->fire('commandsManager:' . $eventName, $command, $result);

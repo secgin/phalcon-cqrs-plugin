@@ -7,8 +7,8 @@ use Phalcon\Mvc\Model\ManagerInterface;
 use Phalcon\Mvc\Model\MetaDataInterface;
 use Phalcon\Mvc\Model\Transaction\Manager;
 use YG\Phalcon\Cqrs\Command\AbstractCommand;
-use YG\Phalcon\Cqrs\Command\Result;
-use YG\Phalcon\Cqrs\Command\ResultInterface;
+use YG\Phalcon\Cqrs\Command\CommandResult;
+use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
 /**
  * @property ManagerInterface  $modelsManager
@@ -16,12 +16,12 @@ use YG\Phalcon\Cqrs\Command\ResultInterface;
  */
 abstract class AbstractDbCommand extends AbstractCommand
 {
-    abstract protected function execute(): ResultInterface;
+    abstract protected function execute(): CommandResultInterface;
 
     /**
      * @throws Exception
      */
-    protected function transaction(callable $callable): ResultInterface
+    protected function transaction(callable $callable): CommandResultInterface
     {
         try
         {
@@ -36,7 +36,7 @@ abstract class AbstractDbCommand extends AbstractCommand
             }
 
             $transaction->commit();
-            return Result::success();
+            return CommandResult::success();
         }
         catch (Exception $exception)
         {

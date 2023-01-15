@@ -3,14 +3,14 @@
 namespace YG\Phalcon\Cqrs\Command\Db;
 
 use Phalcon\Exception;
-use YG\Phalcon\Cqrs\Command\Result;
-use YG\Phalcon\Cqrs\Command\ResultInterface;
+use YG\Phalcon\Cqrs\Command\CommandResult;
+use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
 abstract class AbstractDbDeleteCommand extends AbstractDbCommand
 {
     use ModelTrait;
 
-    final protected function execute(): ResultInterface
+    final protected function execute(): CommandResultInterface
     {
         if (method_exists($this, 'initialize'))
             $this->initialize();
@@ -23,7 +23,7 @@ abstract class AbstractDbDeleteCommand extends AbstractDbCommand
 
         $entity = $modelClass::findFirst($primaryKeyValue);
         if (!$entity)
-            return Result::fail('Entity not found');
+            return CommandResult::fail('Entity not found');
 
         if (method_exists($this, 'beforeExecute'))
             $this->beforeExecute($entity);
@@ -33,10 +33,10 @@ abstract class AbstractDbDeleteCommand extends AbstractDbCommand
             if (method_exists($this, 'afterExecute'))
                 $this->afterExecute($entity);
 
-            return Result::success();
+            return CommandResult::success();
         }
 
-        return Result::fail($entity->getMessages());
+        return CommandResult::fail($entity->getMessages());
     }
 
     private function isValid(): void

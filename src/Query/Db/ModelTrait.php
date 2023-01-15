@@ -27,7 +27,7 @@ trait ModelTrait
     {
         $modelClass = $this->getModelName();
         if (!class_exists($modelClass))
-            throw new Exception('Model not found: ' . $modelClass);
+            throw new Exception('Not found model on the '. $modelClass. ' command');
 
         $model = new $modelClass();
         $model->assign($data);

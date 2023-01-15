@@ -9,15 +9,14 @@ use Phalcon\Mvc\ModelInterface;
 abstract class AbstractFindFirstDbQuery extends AbstractDbQuery
 {
     use ModelTrait;
+    use FindDbQueryValidationTrait;
 
     final protected function fetch(): ?ModelInterface
     {
         if (method_exists($this, 'initialize'))
             $this->initialize();
 
-        $modelClass = $this->getModelName();
-        if (!class_exists($modelClass))
-            throw new Exception('Model not found: ' . $modelClass);
+        $this->isModelNameValid();
 
         $modelName = $this->getModelName();
         $data = $this->getData();

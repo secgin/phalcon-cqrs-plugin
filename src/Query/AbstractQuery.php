@@ -2,8 +2,8 @@
 
 namespace YG\Phalcon\Cqrs\Query;
 
-use Phalcon\Exception;
 use YG\Phalcon\Cqrs\AbstractRequest;
+use YG\Phalcon\Cqrs\NotFoundException;
 use YG\Phalcon\Cqrs\Query\Db\AbstractDbQuery;
 
 /**
@@ -11,26 +11,27 @@ use YG\Phalcon\Cqrs\Query\Db\AbstractDbQuery;
  */
 abstract class AbstractQuery extends AbstractRequest
 {
-    public function __construct()
+    /**
+     * @throws NotFoundException
+     */
+    private function dispatch()
     {
-        parent::__construct();
-    }
-
-    private function internalHandle()
-    {
-        if ($this instanceof AbstractDbQuery)
-            return $this->fetch();
-        elseif ($this->getDI()->has(get_class($this)))
+        if ($this->getDI()->has(get_class($this)))
         {
             $queryHandler = $this->getDI()->get(get_class($this));
 
             if (!method_exists($queryHandler, 'handle'))
-                throw new Exception('Not found "handle" method on the Query Handler Class');
+                throw new NotFoundException(
+                    'Not found "handle" method on the query handler class ' .
+                    'for execute the  ' . get_called_class() . ' query');
 
             return $queryHandler->handle($this);
         }
 
-        throw new Exception('Not found Query Handler');
+        if ($this instanceof AbstractDbQuery)
+            return $this->fetch();
+
+        throw new NotFoundException('Not found Query Handler for ' . get_called_class() . ' query');
     }
 
     public static function __callStatic($name, $arguments)
@@ -39,7 +40,7 @@ abstract class AbstractQuery extends AbstractRequest
         {
             $instance = self::create($arguments[0] ?? [], $arguments[1] ?? []);
             $instance->assign($arguments[0] ?? [], $arguments[1] ?? []);
-            return $instance->internalHandle();
+            return $instance->dispatch();
         }
 
         return null;
@@ -47,6 +48,6 @@ abstract class AbstractQuery extends AbstractRequest
 
     public function __invoke()
     {
-        return $this->internalHandle();
+        return $this->dispatch();
     }
 }

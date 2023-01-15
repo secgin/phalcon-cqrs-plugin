@@ -2,70 +2,56 @@
 
 namespace YG\Phalcon\Cqrs\Command;
 
-use Error;
 use Phalcon\Exception;
 use YG\Phalcon\Cqrs\AbstractRequest;
 use YG\Phalcon\Cqrs\Command\Db\AbstractDbCommand;
+use YG\Phalcon\Cqrs\NotFoundException;
 
 /**
  * @property ManagerInterface $commandsManager
  */
 abstract class AbstractCommand extends AbstractRequest
 {
-    public function __construct()
+    private function dispatch()
     {
-        parent::__construct();
-    }
-
-    private function internalHandle()
-    {
-        if ($this instanceof AbstractDbCommand)
-        {
-            try
-            {
-                $result = $this->execute();
-            }
-            catch (\YG\Phalcon\Cqrs\Command\Exception $ex) {
-                $result = Result::fail($ex->getMessage(), $ex);
-            }
-            catch (Exception $ex)
-            {
-                $result = Result::fail('Hata!!!', $ex);
-            }
-
-            if ($result->isSuccess())
-                $this->commandsManager->notifyEvent('success', $this, $result);
-            else
-                $this->commandsManager->notifyEvent('fail', $this, $result);
-
-            return $result;
-        }
-
         if ($this->getDI()->has(get_class($this)))
         {
             $commandHandler = $this->getDI()->get(get_class($this));
 
             if (!method_exists($commandHandler, 'handle'))
-                throw new Exception('Not found "handle" method on the Command Handler Class');
+                throw new NotFoundException(
+                    'Not found "handle" method on the command handler class ' .
+                    'for execute the  ' . get_called_class() . ' command');
 
+            try
+            {
+                $result = $commandHandler->handle($this);
+            }
+            catch (Exception $ex)
+            {
+                $result = CommandResult::fail('Hata!!!', $ex);
+            }
+        }
+        elseif ($this instanceof AbstractDbCommand)
+        {
             try
             {
                 $result = $this->execute();
             }
             catch (Exception $ex)
             {
-                $result = Result::fail('Hata!!!', $ex);
+                $result = CommandResult::fail('Hata!!!', $ex);
             }
-
-            if ($result->isSuccess())
-                $this->commandsManager->notifyEvent('success', $this, $result);
-            else
-                $this->commandsManager->notifyEvent('fail', $this, $result);
-
-            return $result;
         }
+        else
+            throw new NotFoundException('Not found Command Handler for ' . get_called_class() . ' command');
 
-        throw new Exception('Command handler not found **');
+        if ($result->isSuccess())
+            $this->commandsManager->notifyEvent('success', $this, $result);
+        else
+            $this->commandsManager->notifyEvent('fail', $this, $result);
+
+        return $result;
     }
 
     public static function __callStatic($name, $arguments)
@@ -74,7 +60,7 @@ abstract class AbstractCommand extends AbstractRequest
         {
             $instance = self::create($arguments[0] ?? [], $arguments[1] ?? []);
             $instance->assign($arguments[0] ?? [], $arguments[1] ?? []);
-            return $instance->internalHandle();
+            return $instance->dispatch();
         }
 
         return null;
@@ -82,6 +68,6 @@ abstract class AbstractCommand extends AbstractRequest
 
     public function __invoke()
     {
-        return $this->internalHandle();
+        return $this->dispatch();
     }
 }

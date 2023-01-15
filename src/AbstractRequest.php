@@ -10,10 +10,6 @@ use ReflectionProperty;
 
 abstract class AbstractRequest implements InjectionAwareInterface
 {
-    public function __construct()
-    {
-    }
-
     final static private function newInstance(array $data, array $columnMap = []): self
     {
         $reflection = new ReflectionClass(get_called_class());

@@ -5,7 +5,7 @@ namespace YG\Phalcon\Cqrs\Command;
 use Phalcon\Exception;
 use Phalcon\Messages\Message;
 
-final class Result implements ResultInterface
+final class CommandResult implements CommandResultInterface
 {
     private bool $success;
 
@@ -37,7 +37,7 @@ final class Result implements ResultInterface
 
     static public function success(?string $id = null): self
     {
-        return new Result(true, null, $id);
+        return new CommandResult(true, null, $id);
     }
 
     /**
@@ -48,7 +48,7 @@ final class Result implements ResultInterface
      */
     static public function fail($message, Exception $exception = null): self
     {
-        $result = new Result(false, $message, null);
+        $result = new CommandResult(false, $message, null);
         $result->exception = $exception;
         return $result;
     }

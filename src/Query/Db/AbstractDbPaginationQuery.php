@@ -12,8 +12,6 @@ abstract class AbstractDbPaginationQuery extends AbstractDbQuery
 
     public function __construct()
     {
-        parent::__construct();
-
         $this->page = 1;
         $this->limit = 10;
         $this->sort = null;

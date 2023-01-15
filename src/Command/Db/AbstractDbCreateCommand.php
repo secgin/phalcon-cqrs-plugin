@@ -2,14 +2,14 @@
 
 namespace YG\Phalcon\Cqrs\Command\Db;
 
-use YG\Phalcon\Cqrs\Command\Result;
-use YG\Phalcon\Cqrs\Command\ResultInterface;
+use YG\Phalcon\Cqrs\Command\CommandResult;
+use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
 abstract class AbstractDbCreateCommand extends AbstractDbCommand
 {
     use ModelTrait;
 
-    final protected function execute(): ResultInterface
+    final protected function execute(): CommandResultInterface
     {
         if (method_exists($this, 'initialize'))
             $this->initialize();
@@ -24,8 +24,8 @@ abstract class AbstractDbCreateCommand extends AbstractDbCommand
             if (method_exists($this, 'afterExecute'))
                 $this->afterExecute($entity);
 
-            return Result::success($entity->id);
+            return CommandResult::success($entity->id);
         }
-        return Result::fail($entity->getMessages());
+        return CommandResult::fail($entity->getMessages());
     }
 }

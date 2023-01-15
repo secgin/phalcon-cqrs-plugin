@@ -2,7 +2,7 @@
 
 namespace YG\Phalcon\Cqrs\Query;
 
-class AbstractPaginationQuery extends AbstractQuery
+abstract class AbstractPaginationQuery extends AbstractQuery
 {
     protected int $page;
 
@@ -12,8 +12,6 @@ class AbstractPaginationQuery extends AbstractQuery
 
     public function __construct()
     {
-        parent::__construct();
-
         $this->page = 1;
         $this->limit = 10;
         $this->sort = null;

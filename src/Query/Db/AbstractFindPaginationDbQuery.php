@@ -10,15 +10,14 @@ use Phalcon\Paginator\RepositoryInterface;
 abstract class AbstractFindPaginationDbQuery extends AbstractDbPaginationQuery
 {
     use ModelTrait;
+    use FindDbQueryValidationTrait;
 
     final protected function fetch(): RepositoryInterface
     {
         if (method_exists($this, 'initialize'))
             $this->initialize();
 
-        $modelClass = $this->getModelName();
-        if (!class_exists($modelClass))
-            throw new Exception('Model not found: ' . $modelClass);
+        $this->isModelNameValid();
 
         $modelName = $this->getModelName();
 

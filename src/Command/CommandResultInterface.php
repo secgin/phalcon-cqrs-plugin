@@ -5,7 +5,7 @@ namespace YG\Phalcon\Cqrs\Command;
 use Phalcon\Exception;
 use Phalcon\Messages\Message;
 
-interface ResultInterface
+interface CommandResultInterface
 {
     public function isSuccess(): bool;
 
