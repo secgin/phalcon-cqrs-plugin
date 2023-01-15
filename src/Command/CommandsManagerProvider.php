@@ -11,6 +11,8 @@ class CommandDispatcherProvider implements ServiceProviderInterface
 
     public function register(DiInterface $di): void
     {
-        $di->setShared(self::$serviceName, CommandDispatcher::class);
+        $di->setShared(self::$serviceName, Dispatcher::class);
+
+        $di->setShared('commandsManager', Manager::class);
     }
 }

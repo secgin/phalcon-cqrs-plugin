@@ -1,24 +1,37 @@
 <?php
 
-namespace YG\Phalcon\Cqrs\Command\Db\Handler;
+namespace YG\Phalcon\Cqrs\Command\Db;
 
 use Error;
 use YG\Phalcon\Cqrs\Command\CommandResult;
-use YG\Phalcon\Cqrs\Command\Db\AbstractUpdateDbCommand;
 
-final class UpdateDbCommandHandler
+abstract class AbstractUpdateDbCommand extends AbstractDbCommand
 {
-    public function handle(AbstractUpdateDbCommand $command): CommandResult
+    private string
+        $modelClass,
+        $primaryField;
+
+    protected function setModelClass(string $modelClass): void
     {
-        $modelClass = $command->modelClass;
+        $this->modelClass = $modelClass;
+    }
+
+    protected function setPrimaryField(string $primaryField): void
+    {
+        $this->primaryField = $primaryField;
+    }
+
+    final public function execute(): CommandResult
+    {
+        $modelClass = $this->modelClass;
         if (!class_exists($modelClass))
             throw new Error('Model class not found: ' . $modelClass);
 
-        $primaryField = $command->primaryField;
+        $primaryField = $this->primaryField;
         if ($primaryField == '')
             throw new Error('Primary field not found');
 
-        $data = $command->getData();
+        $data = $this->getData();
 
         $primaryFieldValue = $data[$primaryField] ?? null;
         if ($primaryFieldValue == null)
@@ -30,9 +43,23 @@ final class UpdateDbCommandHandler
             return CommandResult::fail('Entity not found');
 
         $entity->assign($data);
+
+        $this->beforeExecute($entity);
+
         if ($entity->update())
+        {
+            $this->afterExecute($entity);
             return CommandResult::success($primaryFieldValue);
+        }
 
         return CommandResult::fail($entity->getMessages());
+    }
+
+    protected function beforeExecute($entity): void
+    {
+    }
+
+    protected function afterExecute($entity): void
+    {
     }
 }

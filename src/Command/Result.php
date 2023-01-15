@@ -4,7 +4,7 @@ namespace YG\Phalcon\Cqrs\Command;
 
 use Phalcon\Messages\Message;
 
-final class CommandResult
+final class CommandResult implements CommandResultInterface
 {
     private bool $success;
 
