@@ -17,6 +17,17 @@ abstract class AbstractPaginationQueryHandler implements InjectionAwareInterface
 {
     final protected function fetchPagination(BuilderInterface $builder, int $page, int $limit): RepositoryInterface
     {
+        $paginate = $this->execute($builder, $page, $limit);
+
+        $pageCounts = ceil($paginate->getTotalItems() / $limit);
+        if ($page > $pageCounts)
+            $paginate = $this->execute($builder, $pageCounts, $limit);
+
+        return $paginate;
+    }
+
+    private function execute(BuilderInterface $builder, int $page, int $limit): RepositoryInterface
+    {
         $paginator = (new PaginatorFactory())->newInstance('queryBuilder',
             [
                 'builder' => $builder,
