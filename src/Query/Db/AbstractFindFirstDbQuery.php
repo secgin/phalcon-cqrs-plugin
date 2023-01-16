@@ -19,7 +19,20 @@ abstract class AbstractFindFirstDbQuery extends AbstractDbQuery
         $this->isModelNameValid();
 
         $modelName = $this->getModelName();
+        $primaryKey = $this->getPrimaryKey();
+        $modelPrimaryKey = $this->getModelPrimaryKey();
         $data = $this->getData();
+
+        echo $primaryKey . '-' . $modelPrimaryKey;
+
+        if ($primaryKey != null and $primaryKey != $modelPrimaryKey)
+        {
+            if (isset($data[$primaryKey]))
+            {
+                $data[$modelPrimaryKey] = $data[$primaryKey];
+                unset($data[$primaryKey]);
+            }
+        }
 
         $builder = Criteria::fromInput($this->getDI(), $modelName, $data);
 
