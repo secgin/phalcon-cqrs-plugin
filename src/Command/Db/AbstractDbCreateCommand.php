@@ -14,7 +14,7 @@ abstract class AbstractDbCreateCommand extends AbstractDbCommand
         if (method_exists($this, 'initialize'))
             $this->initialize();
 
-        $entity = $this->getModel($this->getData());
+        $entity = $this->getModel();
 
         if (method_exists($this, 'beforeExecute'))
             $this->beforeExecute($entity);

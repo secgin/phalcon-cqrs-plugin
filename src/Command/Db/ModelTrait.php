@@ -32,14 +32,46 @@ trait ModelTrait
         return $this->primaryKey ?? null;
     }
 
-    protected function getModel(array $data = []): ModelInterface
+    final protected function getPrimaryKeyValue()
+    {
+        return $this->{$this->getPrimaryKey()};
+    }
+
+    final protected function getModel(): ModelInterface
     {
         $modelClass = $this->getModelName();
         if (!class_exists($modelClass))
-            throw new Exception('Model not found: ' . $modelClass);
+            throw new Exception('Model not found: ' . $modelClass .' on the ' . get_called_class());
 
         $model = new $modelClass();
-        $model->assign($data);
+
+        $dataWithBuiltinType = [];
+        foreach($this->getData() as $name => $value)
+            if (!is_object($value) and !is_array($value))
+                $dataWithBuiltinType[$name] = $value;
+
+        $model->assign($dataWithBuiltinType);
         return $model;
+    }
+
+    final protected function findFirst(): ?ModelInterface
+    {
+        /**
+         * @var ModelInterface $entity
+         */
+        return $this->getModelName()::findFirst($this->getPrimaryKeyValue());
+    }
+
+    final protected function getDataForModel(): array
+    {
+        $data = $this->getData();
+        unset($data[$this->getPrimaryKey()]);
+
+        $dataWithBuiltinType = [];
+        foreach($data as $name => $value)
+            if (!is_object($value) and !is_array($value))
+                $dataWithBuiltinType[$name] = $value;
+
+        return $dataWithBuiltinType;
     }
 }

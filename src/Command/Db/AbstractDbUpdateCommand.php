@@ -17,18 +17,11 @@ abstract class AbstractDbUpdateCommand extends AbstractDbCommand
 
         $this->isValid();
 
-        $modelClass = $this->getModelName();
-        $primaryKey = $this->getPrimaryKey();
-        $primaryKeyValue = $this->$primaryKey;
-
-        $entity = $modelClass::findFirst($primaryKeyValue);
+        $entity = $this->findFirst();
         if (!$entity)
-            return CommandResult::fail('Entity not found');
+            return CommandResult::fail('No records found');
 
-
-        $data = $this->getData();
-        unset($data[$primaryKey]);
-        $entity->assign($data);
+        $entity->assign($this->getDataForModel());
 
         if (method_exists($this, 'beforeExecute'))
             $this->beforeExecute($entity);

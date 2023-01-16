@@ -11,7 +11,7 @@ final class CommandResult implements CommandResultInterface
 
     private ?string $id;
 
-    private Exception $exception;
+    private ?Exception $exception;
 
     /**
      * @var Message[]

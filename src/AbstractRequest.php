@@ -5,6 +5,7 @@ namespace YG\Phalcon\Cqrs;
 use Phalcon\Di;
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\InjectionAwareInterface;
+use Phalcon\Http\RequestInterface;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -66,7 +67,7 @@ abstract class AbstractRequest implements InjectionAwareInterface
         return $reflection->newInstanceArgs($args);
     }
 
-    final static public function create(array $data, array $columnMap = []): self
+    final static public function create(array $data = [], array $columnMap = []): self
     {
         $instance = self::newInstance($data, $columnMap);
         $instance->assign($data, $columnMap);
@@ -83,9 +84,11 @@ abstract class AbstractRequest implements InjectionAwareInterface
             $propertyName = $property->name;
             $propertyTypeName = null;
             $allowsNull = true;
+            $isBuiltinPropertyType = true;
 
             if ($property->getType() != null)
             {
+                $isBuiltinPropertyType = $property->getType()->isBuiltin();
                 $propertyTypeName = $property->getType()->getName();
                 $allowsNull = $property->getType()->allowsNull();
             }
@@ -102,33 +105,13 @@ abstract class AbstractRequest implements InjectionAwareInterface
                 if ($property->isInitialized($this))
                     continue;
 
-                if ($allowsNull)
-                {
-                    $value = null;
-                }
+                if (!$isBuiltinPropertyType)
+                    $this->setPropertyValueOfUnBuiltin($propertyName, $propertyTypeName, $allowsNull);
                 else
-                {
-                    switch ($propertyTypeName)
-                    {
-                        case 'bool':
-                            $value = false;
-                            break;
-                        case 'int':
-                        case 'float':
-                            $value = 0;
-                            break;
-                        case 'array':
-                            $value = [];
-                            break;
-                        case 'string':
-                            $value = '';
-                            break;
-                        default:
-                            $value = null;
-                    }
-                }
+                    $this->$propertyName = $allowsNull
+                        ? null
+                        : $this->getPropertyDefaultValue($propertyTypeName);
 
-                $this->$propertyName = $value;
                 continue;
             }
 
@@ -137,27 +120,78 @@ abstract class AbstractRequest implements InjectionAwareInterface
             if ($allowsNull and $value == '')
                 $value = null;
             else
-                switch ($propertyTypeName)
-                {
-                    case 'bool':
-                        settype($value, 'bool');
-                        break;
-                    case 'int':
-                        settype($value, 'int');
-                        break;
-                    case 'float':
-                        settype($value, 'float');
-                        break;
-                    case 'string':
-                        settype($value, 'string');
-                        break;
-                    case 'array':
-                        settype($value, 'array');
-                        break;
-                }
+                $this->setValueTypeByPropertyType($value, $propertyTypeName);
 
-            $this->$propertyName = $value;
+            if ($isBuiltinPropertyType)
+                $this->$propertyName = $value;
+            else
+                $this->setPropertyValueOfUnBuiltin($propertyName, $propertyTypeName, $allowsNull);
         }
+    }
+
+    private function getPropertyDefaultValue(?string $propertyTypeName)
+    {
+        switch ($propertyTypeName)
+        {
+            case 'bool':
+                $value = false;
+                break;
+            case 'int':
+            case 'float':
+                $value = 0;
+                break;
+            case 'array':
+                $value = [];
+                break;
+            case 'string':
+                $value = '';
+                break;
+            default:
+                $value = null;
+        }
+
+        return $value;
+    }
+
+    private function setValueTypeByPropertyType(&$value, ?string $propertyTypeName): void
+    {
+        switch ($propertyTypeName)
+        {
+            case 'bool':
+                settype($value, 'bool');
+                break;
+            case 'int':
+                settype($value, 'int');
+                break;
+            case 'float':
+                settype($value, 'float');
+                break;
+            case 'string':
+                settype($value, 'string');
+                break;
+            case 'array':
+                settype($value, 'array');
+                break;
+        }
+    }
+
+    private function setPropertyValueOfUnBuiltin(string $propertyName, string $propertyTypeName, bool $allowsNull): void
+    {
+        $unBuiltinValue = null;
+        if ($propertyTypeName == 'Phalcon\Http\Request\File')
+        {
+            /**
+             * @var RequestInterface $request
+             */
+            $request = $this->getDI()->get('request');
+            $files = $request->getUploadedFiles(true, true);
+            $unBuiltinValue = $files[$propertyName] ?? null;
+        }
+
+        if ($unBuiltinValue != null)
+            $this->$propertyName = $unBuiltinValue;
+        elseif ($allowsNull)
+            $this->$propertyName = null;
     }
 
     public function getData(): array
@@ -177,7 +211,19 @@ abstract class AbstractRequest implements InjectionAwareInterface
                 continue;
 
             $propertyName = $property->getName();
+
+            $propertyTypeName = null;
+            if ($property->getType() != null)
+                $propertyTypeName = $property->getType()->getName();
+
             $propertyValue = $this->$propertyName ?? null;
+
+            switch ($propertyTypeName)
+            {
+                case 'bool':
+                    $propertyValue = $propertyValue ? 1 : 0;
+                    break;
+            }
 
             $fieldName = ($columnMap != null and array_key_exists($propertyName, $columnMap))
                 ? $columnMap[$propertyName]
