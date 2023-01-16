@@ -46,6 +46,14 @@ abstract class AbstractQuery extends AbstractRequest
         return null;
     }
 
+    public function __call($name, $arguments)
+    {
+        if ($name == 'handle')
+            return $this->dispatch();
+
+        return null;
+    }
+
     public function __invoke()
     {
         return $this->dispatch();
