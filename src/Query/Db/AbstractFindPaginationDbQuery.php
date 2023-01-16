@@ -2,9 +2,7 @@
 
 namespace YG\Phalcon\Cqrs\Query\Db;
 
-use Phalcon\Exception;
 use Phalcon\Mvc\Model\Criteria;
-use Phalcon\Paginator\Adapter\QueryBuilder;
 use Phalcon\Paginator\RepositoryInterface;
 
 abstract class AbstractFindPaginationDbQuery extends AbstractDbPaginationQuery
@@ -37,12 +35,6 @@ abstract class AbstractFindPaginationDbQuery extends AbstractDbPaginationQuery
         if ($this->sort != '')
             $builder->orderBy($this->getSort());
 
-        $paginator = new QueryBuilder([
-            'builder' => $builder,
-            'limit' => $this->getLimit(),
-            'page' => $this->getPage()
-        ]);
-
-        return $paginator->paginate();
+        return $this->fetchPagination($builder, $this->getPage(), $this->getLimit());
     }
 }
