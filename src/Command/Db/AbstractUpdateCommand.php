@@ -31,8 +31,16 @@ abstract class AbstractUpdateCommand extends AbstractCommand
 
         $entity->assign($this->getDataForModel($primaryKey));
 
+        if (method_exists($this, 'beforeUpdate'))
+            $this->beforeUpdate($entity);
+
         if ($entity->update())
+        {
+            if (method_exists($this, 'afterUpdate'))
+                $this->afterUpdate($entity);
+
             return CommandResult::success();
+        }
 
         return CommandResult::fail($entity->getMessages());
     }

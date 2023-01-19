@@ -29,8 +29,16 @@ abstract class AbstractDeleteCommand extends AbstractCommand
         if (!$entity)
             return CommandResult::fail('No records found');
 
+        if (method_exists($this, 'beforeDelete'))
+            $this->beforeDelete($entity);
+
         if ($entity->delete())
+        {
+            if (method_exists($this, 'afterDelete'))
+                $this->afterDelete($entity);
+
             return CommandResult::success();
+        }
 
         return CommandResult::fail($entity->getMessages());
     }
