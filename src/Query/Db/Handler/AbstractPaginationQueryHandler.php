@@ -1,15 +1,21 @@
 <?php
 
-namespace YG\Phalcon\Cqrs\Query\Db;
+namespace YG\Phalcon\Cqrs\Query\Db\Handler;
 
+use Phalcon\Mvc\Model\ManagerInterface;
 use Phalcon\Mvc\Model\Query\BuilderInterface;
 use Phalcon\Paginator\PaginatorFactory;
 use Phalcon\Paginator\RepositoryInterface;
-use YG\Phalcon\Cqrs\Query\AbstractQuery;
 
-abstract class AbstractDbQuery extends AbstractQuery
+/**
+ * @property ManagerInterface $modelsManager
+ */
+abstract class AbstractPaginationQueryHandler extends AbstractQueryHandler
 {
-    abstract protected function fetch();
+    final protected function createBuilder(): BuilderInterface
+    {
+        return $this->modelsManager->createBuilder();
+    }
 
     final protected function fetchPagination(BuilderInterface $builder, int $page, int $limit): RepositoryInterface
     {

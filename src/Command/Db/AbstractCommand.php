@@ -2,33 +2,21 @@
 
 namespace YG\Phalcon\Cqrs\Command\Db;
 
-use Phalcon\Exception;
-use Phalcon\Mvc\Model\ManagerInterface;
-use Phalcon\Mvc\Model\MetaDataInterface;
+use Exception;
 use Phalcon\Mvc\Model\Transaction\Manager;
-use YG\Phalcon\Cqrs\Command\AbstractCommand;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
-/**
- * @property ManagerInterface  $modelsManager
- * @property MetaDataInterface $modelsMetadata
- */
-abstract class AbstractDbCommand extends AbstractCommand
+class AbstractCommand extends \YG\Phalcon\Cqrs\Command\AbstractCommand
 {
-    abstract protected function execute(): CommandResultInterface;
-
-    /**
-     * @throws Exception
-     */
-    protected function transaction(callable $callable): CommandResultInterface
+    final protected function transaction($func): CommandResultInterface
     {
         try
         {
             $txManager = new Manager();
             $transaction = $txManager->get();
 
-            $result = $callable($transaction);
+            $result = $func($transaction);
             if (!$result or $result->isFail())
             {
                 $transaction->rollback();

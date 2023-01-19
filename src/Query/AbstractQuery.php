@@ -2,45 +2,52 @@
 
 namespace YG\Phalcon\Cqrs\Query;
 
+use Error;
+use Exception;
+use Phalcon\Di;
+use Phalcon\Di\DiInterface;
+use Throwable;
 use YG\Phalcon\Cqrs\AbstractRequest;
-use YG\Phalcon\Cqrs\NotFoundException;
-use YG\Phalcon\Cqrs\Query\Db\AbstractDbQuery;
 
 /**
- * @method static mixed handle(array $data = [], array $columnMap = [])
+ * @method mixed fetch(array $data = [])
  */
-abstract class AbstractQuery extends AbstractRequest
+abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwareInterface
 {
-    /**
-     * @throws NotFoundException
-     */
     private function dispatch()
     {
-        if ($this->getDI()->has(get_class($this)))
+        if (method_exists($this, 'handle'))
         {
-            $queryHandler = $this->getDI()->get(get_class($this));
+            $this->getQueryDispatcher()->notifyEvent('beforeFetch', $this);
 
-            if (!method_exists($queryHandler, 'handle'))
-                throw new NotFoundException(
-                    'Not found "handle" method on the query handler class ' .
-                    'for execute the  ' . get_called_class() . ' query');
-
-            return $queryHandler->handle($this);
+            try
+            {
+                $result = $this->handle();
+                $this->getQueryDispatcher()->notifyEvent('afterFetch', $this, $result);
+                return $result;
+            }
+            catch (Exception|Error|Throwable $ex)
+            {
+                $this->getQueryDispatcher()->notifyEvent('error', $this, $ex);
+                return null;
+            }
         }
 
-        if ($this instanceof AbstractDbQuery)
-            return $this->fetch();
+        return $this->getQueryDispatcher()->dispatch($this);
+    }
 
-        throw new NotFoundException('Not found Query Handler for ' . get_called_class() . ' query');
+    private function getQueryDispatcher(): DispatcherInterface
+    {
+        return $this->getDI()->get('queryDispatcher');
     }
 
     public static function __callStatic($name, $arguments)
     {
-        if ($name == 'handle')
+        if ($name == 'fetch')
         {
             $instance = self::create($arguments[0] ?? [], $arguments[1] ?? []);
             $instance->assign($arguments[0] ?? [], $arguments[1] ?? []);
-            return $instance->dispatch();
+            return $instance->fetch();
         }
 
         return null;
@@ -48,14 +55,41 @@ abstract class AbstractQuery extends AbstractRequest
 
     public function __call($name, $arguments)
     {
-        if ($name == 'handle')
+        if ($name == 'fetch')
             return $this->dispatch();
 
         return null;
+    }
+
+    public function __get($name)
+    {
+        $result = parent::__get($name);
+
+        if ($result == null and $this->getDI()->has($name))
+            return $this->getDI()->get($name);
+
+        return $result;
     }
 
     public function __invoke()
     {
         return $this->dispatch();
     }
+
+    #region InjectionAwareInterface
+    private DiInterface $container;
+
+    public function getDI(): DiInterface
+    {
+        if (!isset($this->container))
+            $this->container = Di::getDefault();
+
+        return $this->container;
+    }
+
+    public function setDI(DiInterface $container): void
+    {
+        $this->container = $container;
+    }
+    #endregion
 }

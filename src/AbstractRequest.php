@@ -3,15 +3,13 @@
 namespace YG\Phalcon\Cqrs;
 
 use Phalcon\Di;
-use Phalcon\Di\DiInterface;
-use Phalcon\Di\InjectionAwareInterface;
 use Phalcon\Http\RequestInterface;
 use ReflectionClass;
 use ReflectionProperty;
 
-abstract class AbstractRequest implements InjectionAwareInterface
+abstract class AbstractRequest
 {
-    final static private function newInstance(array $data, array $columnMap = []): self
+    static private function newInstance(array $data, array $columnMap = []): self
     {
         $reflection = new ReflectionClass(get_called_class());
         $constructorMethod = $reflection->getConstructor();
@@ -183,7 +181,7 @@ abstract class AbstractRequest implements InjectionAwareInterface
             /**
              * @var RequestInterface $request
              */
-            $request = $this->getDI()->get('request');
+            $request = Di::getDefault()->get('request');
             $files = $request->getUploadedFiles(true, true);
             $unBuiltinValue = $files[$propertyName] ?? null;
         }
@@ -211,6 +209,9 @@ abstract class AbstractRequest implements InjectionAwareInterface
                 continue;
 
             $propertyName = $property->getName();
+
+            if (!isset($this->$propertyName))
+                continue;
 
             $propertyTypeName = null;
             if ($property->getType() != null)
@@ -241,9 +242,6 @@ abstract class AbstractRequest implements InjectionAwareInterface
         if (method_exists($this, $methodName))
             return $this->$methodName();
 
-        if ($this->getDI()->has($name))
-            return $this->getDI()->get($name);
-
         return null;
     }
 
@@ -252,23 +250,6 @@ abstract class AbstractRequest implements InjectionAwareInterface
         $methodName = 'set' . ucfirst($name);
         if (method_exists($this, $methodName))
             $this->$methodName($value);
-    }
-    #endregion
-
-    #region InjectionAwareInterface
-    private DiInterface $container;
-
-    public function getDI(): DiInterface
-    {
-        if (!isset($this->container))
-            $this->container = Di::getDefault();
-
-        return $this->container;
-    }
-
-    public function setDI(DiInterface $container): void
-    {
-        $this->container = $container;
     }
     #endregion
 }

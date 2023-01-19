@@ -2,21 +2,21 @@
 
 namespace YG\Phalcon\Cqrs\Query\Db;
 
-use Phalcon\Exception;
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\ResultsetInterface;
+use YG\Phalcon\Cqrs\Query\AbstractQuery;
 
-abstract class AbstractFindDbQuery extends AbstractDbQuery
+/**
+ * @method static ResultsetInterface fetch(array $data = [])
+ */
+abstract class AbstractFindQuery extends AbstractQuery
 {
     use ModelTrait;
-    use FindDbQueryValidationTrait;
 
-    final protected function fetch(): ResultsetInterface
+    final protected function handle(): ResultsetInterface
     {
         if (method_exists($this, 'initialize'))
             $this->initialize();
-
-        $this->isModelNameValid();
 
         return Criteria::fromInput($this->getDI(), $this->getModelName(), $this->getData())
             ->execute();

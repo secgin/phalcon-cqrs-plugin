@@ -2,72 +2,83 @@
 
 namespace YG\Phalcon\Cqrs\Command;
 
+use Error;
+use Phalcon\Di;
+use Phalcon\Di\DiInterface;
 use Phalcon\Exception;
+use Throwable;
 use YG\Phalcon\Cqrs\AbstractRequest;
-use YG\Phalcon\Cqrs\Command\Db\AbstractDbCommand;
-use YG\Phalcon\Cqrs\NotFoundException;
 
 /**
- * @property ManagerInterface $commandsManager
+ * @method CommandResultInterface execute
+ * @method static AbstractCommand create(array $data = [], array $columnMap = [])
  */
-abstract class AbstractCommand extends AbstractRequest
+abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAwareInterface
 {
-    private function dispatch()
+    private function dispatch(): CommandResultInterface
     {
-        if ($this->getDI()->has(get_class($this)))
-        {
-            $commandHandler = $this->getDI()->get(get_class($this));
-
-            if (!method_exists($commandHandler, 'handle'))
-                throw new NotFoundException(
-                    'Not found "handle" method on the command handler class ' .
-                    'for execute the  ' . get_called_class() . ' command');
-
-            try
-            {
-                $result = $commandHandler->handle($this);
-            }
-            catch (Exception $ex)
-            {
-                $result = CommandResult::fail('Hata!!!', $ex);
-            }
-        }
-        elseif ($this instanceof AbstractDbCommand)
+        if (method_exists($this, 'handle'))
         {
             try
             {
-                $result = $this->execute();
+                $this->getCommandDispatcher()->notifyEvent('beforeExecute', $this);
+                $result = $this->handle();
+                $this->getCommandDispatcher()->notifyEvent('afterExecute', $this, $result);
             }
-            catch (Exception $ex)
+            catch (Exception|Error|Throwable $ex)
             {
-                $result = CommandResult::fail('Hata!!!', $ex);
+                $result = CommandResult::fail('İşlem sırasında hata oluştu.');
+                $this->getCommandDispatcher()->notifyEvent('error', $this, $ex);
             }
+
+            return $result;
         }
-        else
-            throw new NotFoundException('Not found Command Handler for ' . get_called_class() . ' command');
 
-        if ($result->isSuccess())
-            $this->commandsManager->notifyEvent('success', $this, $result);
-        else
-            $this->commandsManager->notifyEvent('fail', $this, $result);
-
-        return $result;
+        return $this->getCommandDispatcher()->dispatch($this);
     }
 
-    public static function __callStatic($name, $arguments)
+    private function getCommandDispatcher(): DispatcherInterface
     {
-        if ($name == 'handle')
-        {
-            $instance = self::create($arguments[0] ?? [], $arguments[1] ?? []);
-            $instance->assign($arguments[0] ?? [], $arguments[1] ?? []);
-            return $instance->dispatch();
-        }
+        return Di::getDefault()->get('commandDispatcher');
+    }
+
+    public function __call($name, $arguments)
+    {
+        if ($name == 'execute')
+            return $this->dispatch();
 
         return null;
     }
 
-    public function __invoke()
+    public function __get($name)
+    {
+        $result = parent::__get($name);
+
+        if ($result == null and $this->getDI()->has($name))
+            return $this->getDI()->get($name);
+
+        return $result;
+    }
+
+    public function __invoke(): CommandResultInterface
     {
         return $this->dispatch();
     }
+
+    #region InjectionAwareInterface
+    private DiInterface $container;
+
+    public function getDI(): DiInterface
+    {
+        if (!isset($this->container))
+            $this->container = Di::getDefault();
+
+        return $this->container;
+    }
+
+    public function setDI(DiInterface $container): void
+    {
+        $this->container = $container;
+    }
+    #endregion
 }

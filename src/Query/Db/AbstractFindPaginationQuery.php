@@ -4,23 +4,25 @@ namespace YG\Phalcon\Cqrs\Query\Db;
 
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Paginator\RepositoryInterface;
+use YG\Phalcon\Cqrs\Query\AbstractPaginationQuery;
 
-abstract class AbstractFindPaginationDbQuery extends AbstractDbPaginationQuery
+/**
+ * @method static RepositoryInterface fetch(array $data = [])
+ */
+abstract class AbstractFindPaginationQuery extends AbstractPaginationQuery
 {
     use ModelTrait;
-    use FindDbQueryValidationTrait;
 
-    final protected function fetch(): RepositoryInterface
+    use PaginationTrait;
+
+    final protected function handle(): RepositoryInterface
     {
         if (method_exists($this, 'initialize'))
             $this->initialize();
 
-        $this->isModelNameValid();
-
         $modelName = $this->getModelName();
 
-        $builder = $this->modelsManager->createBuilder()
-            ->from($modelName);
+        $builder = $this->createBuilder()->from($modelName);
 
         $data = $this->getData();
         unset($data['page']);
@@ -32,7 +34,7 @@ abstract class AbstractFindPaginationDbQuery extends AbstractDbPaginationQuery
         if ($criteria->getWhere())
             $builder->andWhere($criteria->getConditions(), $criteria->getParams()['bind']);
 
-        if ($this->sort != '')
+        if ($this->getSort() != '')
             $builder->orderBy($this->getSort());
 
         return $this->fetchPagination($builder, $this->getPage(), $this->getLimit());

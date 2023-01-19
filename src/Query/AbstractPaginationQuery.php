@@ -4,18 +4,11 @@ namespace YG\Phalcon\Cqrs\Query;
 
 abstract class AbstractPaginationQuery extends AbstractQuery
 {
-    protected int $page;
+    protected int $page = 1;
 
-    protected int $limit;
+    protected int $limit = 10;
 
-    protected ?string $sort;
-
-    public function __construct()
-    {
-        $this->page = 1;
-        $this->limit = 10;
-        $this->sort = null;
-    }
+    protected ?string $sort = null;
 
     protected function setPage(int $value): void
     {
