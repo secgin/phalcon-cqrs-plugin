@@ -5,9 +5,13 @@ namespace YG\Phalcon\Cqrs\Query\Db\Handler;
 use Phalcon\Di;
 use Phalcon\Di\DiInterface;
 use Phalcon\Di\InjectionAwareInterface;
+use YG\Phalcon\Cqrs\Query\Db\PaginationTrait;
 
 abstract class AbstractQueryHandler implements InjectionAwareInterface
 {
+    use PaginationTrait;
+
+    #region InjectionAwareInterface
     private DiInterface $container;
 
     public function getDI(): DiInterface
@@ -30,4 +34,5 @@ abstract class AbstractQueryHandler implements InjectionAwareInterface
 
         return null;
     }
+    #endregion
 }

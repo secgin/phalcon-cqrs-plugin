@@ -9,9 +9,15 @@ use Phalcon\Paginator\RepositoryInterface;
 
 trait PaginationTrait
 {
-    final protected function createBuilder(): BuilderInterface
+    /**
+     * @param string|array $model
+     *
+     * @return BuilderInterface
+     */
+    final protected function createBuilder($model): BuilderInterface
     {
-        return $this->getModelsManager()->createBuilder();
+        $builder = $this->getModelsManager()->createBuilder();
+        return $builder->from($model);
     }
 
     final protected function fetchPagination(BuilderInterface $builder, int $page, int $limit): RepositoryInterface

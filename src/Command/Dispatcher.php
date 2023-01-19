@@ -15,9 +15,10 @@ final class Dispatcher extends Injectable implements DispatcherInterface, Events
 
     public function dispatch(AbstractCommand $command): CommandResultInterface
     {
-        if (method_exists($command, 'handle'))
+        if (!$this->getDI()->has(get_class($command)))
         {
-            return $command->execute();
+            if (method_exists($command, 'handle'))
+                return $command->execute();
         }
 
         try

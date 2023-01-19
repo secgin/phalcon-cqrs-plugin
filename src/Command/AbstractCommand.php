@@ -17,6 +17,9 @@ abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAw
 {
     private function dispatch(): CommandResultInterface
     {
+        if ($this->getDI()->has(get_called_class()))
+            return $this->getCommandDispatcher()->dispatch($this);
+
         if (method_exists($this, 'handle'))
         {
             try

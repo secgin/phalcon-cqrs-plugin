@@ -16,6 +16,9 @@ abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwar
 {
     private function dispatch()
     {
+        if ($this->getDI()->has(get_called_class()))
+            return $this->getQueryDispatcher()->dispatch($this);
+
         if (method_exists($this, 'handle'))
         {
             $this->getQueryDispatcher()->notifyEvent('beforeFetch', $this);

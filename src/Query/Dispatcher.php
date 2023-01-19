@@ -7,6 +7,7 @@ use Phalcon\Di\Injectable;
 use Phalcon\Events\EventsAwareInterface;
 use Phalcon\Exception;
 use Phalcon\Events\ManagerInterface as EventsManagerInterface;
+use Throwable;
 
 class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareInterface
 {
@@ -14,9 +15,10 @@ class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareI
 
     public function dispatch(AbstractQuery $query)
     {
-        if (method_exists($query, 'handle'))
+        if (!$this->getDI()->has(get_class($query)))
         {
-            return $query->fetch();
+            if (method_exists($query, 'handle'))
+                return $query->fetch();
         }
 
         try
@@ -37,14 +39,18 @@ class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareI
 
             return $result;
         }
-        catch (Exception $ex)
+        catch (Exception|Error|Throwable $ex)
         {
-            if (isset($this->eventsManager))
-                $this->notifyEvent('error', $query, $ex);
+            $this->notifyEvent('error', $query, $ex);
             return null;
         }
     }
 
+    /**
+     * @param AbstractQuery $query
+     *
+     * @return mixed|AbstractQuery|null
+     */
     private function getQueryHandler(AbstractQuery $query)
     {
         $queryClass = get_class($query);
