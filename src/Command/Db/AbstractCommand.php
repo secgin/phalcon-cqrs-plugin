@@ -7,7 +7,7 @@ use Phalcon\Mvc\Model\Transaction\Manager;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
-class AbstractCommand extends \YG\Phalcon\Cqrs\Command\AbstractCommand
+abstract class AbstractCommand extends \YG\Phalcon\Cqrs\Command\AbstractCommand
 {
     final protected function transaction($func): CommandResultInterface
     {
@@ -34,4 +34,6 @@ class AbstractCommand extends \YG\Phalcon\Cqrs\Command\AbstractCommand
             throw $exception;
         }
     }
+
+    abstract protected function handle(): CommandResultInterface;
 }

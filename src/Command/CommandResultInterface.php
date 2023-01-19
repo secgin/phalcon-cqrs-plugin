@@ -16,7 +16,5 @@ interface CommandResultInterface
      */
     public function getMessages(): array;
 
-    public function getException(): ?Exception;
-
     public function getId(): ?string;
 }

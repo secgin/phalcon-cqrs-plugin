@@ -27,14 +27,13 @@ abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAw
                 $this->getCommandDispatcher()->notifyEvent('beforeExecute', $this);
                 $result = $this->handle();
                 $this->getCommandDispatcher()->notifyEvent('afterExecute', $this, $result);
+                return $result;
             }
             catch (Exception|Error|Throwable $ex)
             {
-                $result = CommandResult::fail('İşlem sırasında hata oluştu.');
                 $this->getCommandDispatcher()->notifyEvent('error', $this, $ex);
+                return CommandResult::fail('İşlem sırasında hata oluştu.');
             }
-
-            return $result;
         }
 
         return $this->getCommandDispatcher()->dispatch($this);
@@ -45,6 +44,7 @@ abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAw
         return Di::getDefault()->get('commandDispatcher');
     }
 
+    #region Magic Methods
     public function __call($name, $arguments)
     {
         if ($name == 'execute')
@@ -67,6 +67,7 @@ abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAw
     {
         return $this->dispatch();
     }
+    #endregion
 
     #region InjectionAwareInterface
     private DiInterface $container;

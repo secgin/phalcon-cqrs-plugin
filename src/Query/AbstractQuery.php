@@ -50,12 +50,13 @@ abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwar
         {
             $instance = self::create($arguments[0] ?? [], $arguments[1] ?? []);
             $instance->assign($arguments[0] ?? [], $arguments[1] ?? []);
-            return $instance->fetch();
+            return $instance->dispatch();
         }
 
         return null;
     }
 
+    #region Magic Methods
     public function __call($name, $arguments)
     {
         if ($name == 'fetch')
@@ -78,6 +79,7 @@ abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwar
     {
         return $this->dispatch();
     }
+    #endregion
 
     #region InjectionAwareInterface
     private DiInterface $container;

@@ -11,8 +11,6 @@ final class CommandResult implements CommandResultInterface
 
     private ?string $id;
 
-    private ?Exception $exception;
-
     /**
      * @var Message[]
      */
@@ -46,11 +44,9 @@ final class CommandResult implements CommandResultInterface
      *
      * @return static
      */
-    static public function fail($message, Exception $exception = null): self
+    static public function fail($message): self
     {
-        $result = new CommandResult(false, $message, null);
-        $result->exception = $exception;
-        return $result;
+        return new CommandResult(false, $message, null);
     }
 
     public function isSuccess(): bool
@@ -79,11 +75,6 @@ final class CommandResult implements CommandResultInterface
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function getException(): ?Exception
-    {
-        return $this->exception ?? null;
     }
 
     public function __get($name)

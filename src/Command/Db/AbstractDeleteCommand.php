@@ -19,7 +19,7 @@ abstract class AbstractDeleteCommand extends AbstractCommand
         $modelName = $this->getModelName();
         $primaryKey = $this->getPrimaryKey() != null
             ? $this->getPrimaryKey()
-            : $this->getModelPrimaryKey($modelName);
+            : $this->getModelPrimaryKey();
 
         $primaryKeyValue = $this->$primaryKey;
         if (empty($primaryKeyValue))

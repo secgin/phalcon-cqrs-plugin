@@ -36,7 +36,7 @@ abstract class AbstractCreateCommand extends AbstractCommand
             if (method_exists($this, 'afterCreate'))
                 $this->afterCreate($model);
 
-            $result = CommandResult::success($model->{$this->getPrimaryKey()});
+            return CommandResult::success($model->{$this->getPrimaryKey()});
         }
 
         return CommandResult::fail($model->getMessages());
