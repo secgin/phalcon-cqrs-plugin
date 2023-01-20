@@ -10,7 +10,7 @@ use Phalcon\Mvc\Model\Transaction\Manager;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
-abstract class AbstractCommandHandler implements InjectionAwareInterface
+abstract class AbstractDbCommandHandler implements InjectionAwareInterface
 {
     private DiInterface $container;
 
