@@ -13,7 +13,7 @@ class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareI
 {
     private array $handlers = [];
 
-    public function dispatch(AbstractQuery $query)
+    public function dispatch(Query $query)
     {
         if (!$this->getDI()->has(get_class($query)))
         {
@@ -47,11 +47,11 @@ class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareI
     }
 
     /**
-     * @param AbstractQuery $query
+     * @param Query $query
      *
-     * @return mixed|AbstractQuery|null
+     * @return mixed|Query|null
      */
-    private function getQueryHandler(AbstractQuery $query)
+    private function getQueryHandler(Query $query)
     {
         $queryClass = get_class($query);
 
@@ -76,9 +76,13 @@ class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareI
         return null;
     }
 
-    private function getQueryHandlerClassName(AbstractQuery $query): ?string
+    private function getQueryHandlerClassName(Query $query): ?string
     {
         $queryClass = get_class($query);
+
+        $queryHandlerClassName =  str_replace('Queries', 'QueryHandlers', $queryClass) . "QueryHandler";
+        if (class_exists($queryHandlerClassName))
+            return $queryHandlerClassName;
 
         $arr = explode('\\', $queryClass);
         $queryName = array_pop($arr);
@@ -108,7 +112,7 @@ class Dispatcher extends Injectable implements DispatcherInterface, EventsAwareI
         return null;
     }
 
-    public function notifyEvent(string $eventName, AbstractQuery $query, $result = null): void
+    public function notifyEvent(string $eventName, Query $query, $result = null): void
     {
         if (isset($this->eventsManager))
             $this->eventsManager->fire('queryDispatcher:' . $eventName, $query, $result);

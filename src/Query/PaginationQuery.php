@@ -2,7 +2,7 @@
 
 namespace YG\Phalcon\Cqrs\Query;
 
-abstract class AbstractPaginationQuery extends AbstractQuery
+abstract class PaginationQuery extends Query
 {
     protected int $page = 1;
 

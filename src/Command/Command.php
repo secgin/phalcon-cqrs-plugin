@@ -11,9 +11,9 @@ use YG\Phalcon\Cqrs\AbstractRequest;
 
 /**
  * @method CommandResultInterface execute
- * @method static AbstractCommand create(array $data = [], array $columnMap = [])
+ * @method static Command create(array $data = [], array $columnMap = [])
  */
-abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAwareInterface
+abstract class Command extends AbstractRequest implements Di\InjectionAwareInterface
 {
     private function dispatch(): CommandResultInterface
     {
@@ -48,6 +48,8 @@ abstract class AbstractCommand extends AbstractRequest implements Di\InjectionAw
     public function __call($name, $arguments)
     {
         if ($name == 'execute')
+            return $this->dispatch();
+        elseif ($name == 'handle')
             return $this->dispatch();
 
         return null;

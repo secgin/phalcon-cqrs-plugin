@@ -13,7 +13,7 @@ final class Dispatcher extends Injectable implements DispatcherInterface, Events
 {
     private array $handlers = [];
 
-    public function dispatch(AbstractCommand $command): CommandResultInterface
+    public function dispatch(Command $command): CommandResultInterface
     {
         if (!$this->getDI()->has(get_class($command)))
         {
@@ -44,7 +44,7 @@ final class Dispatcher extends Injectable implements DispatcherInterface, Events
         }
     }
 
-    private function getCommandHandler(AbstractCommand $command)
+    private function getCommandHandler(Command $command)
     {
         $commandClass = get_class($command);
 
@@ -69,9 +69,13 @@ final class Dispatcher extends Injectable implements DispatcherInterface, Events
         return null;
     }
 
-    private function getCommandHandlerClassName(AbstractCommand $command): ?string
+    private function getCommandHandlerClassName(Command $command): ?string
     {
         $commandClass = get_class($command);
+
+        $commandHandlerClass = str_replace('Commands\\', 'CommandHandlers\\', $commandClass) . "CommandHandler";
+        if (class_exists($commandHandlerClass))
+            return $commandHandlerClass;
 
         $arr = explode('\\', $commandClass);
         $commandName = array_pop($arr);
@@ -115,7 +119,7 @@ final class Dispatcher extends Injectable implements DispatcherInterface, Events
     }
     #endregion
 
-    public function notifyEvent(string $eventName, AbstractCommand $command, $result = null): void
+    public function notifyEvent(string $eventName, Command $command, $result = null): void
     {
         if (isset($this->eventsManager))
             $this->eventsManager->fire('commandDispatcher:' . $eventName, $command, $result);

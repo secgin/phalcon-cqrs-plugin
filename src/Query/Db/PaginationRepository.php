@@ -4,7 +4,7 @@ namespace YG\Phalcon\Cqrs\Query\Db;
 
 use Phalcon\Paginator\Repository;
 
-class PaginationRepository extends Repository
+final class PaginationRepository extends Repository
 {
     public function getPages(): array
     {

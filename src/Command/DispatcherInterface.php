@@ -4,7 +4,7 @@ namespace YG\Phalcon\Cqrs\Command;
 
 interface DispatcherInterface
 {
-    public function dispatch(AbstractCommand $command): CommandResultInterface;
+    public function dispatch(Command $command): CommandResultInterface;
 
-    public function notifyEvent(string $eventName, AbstractCommand $command, $result): void;
+    public function notifyEvent(string $eventName, Command $command, $result): void;
 }

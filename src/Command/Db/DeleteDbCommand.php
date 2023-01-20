@@ -7,7 +7,7 @@ use Phalcon\Di;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
-abstract class AbstractDeleteCommand extends AbstractCommand
+abstract class DeleteDbCommand extends DbCommand
 {
     use ModelTrait;
 
@@ -30,7 +30,12 @@ abstract class AbstractDeleteCommand extends AbstractCommand
             return CommandResult::fail('No records found');
 
         if (method_exists($this, 'beforeDelete'))
-            $this->beforeDelete($entity);
+        {
+            $result = $this->beforeDelete($entity);
+
+            if (isset($result) and $result instanceof CommandResultInterface and $result->isFail())
+                return $result;
+        }
 
         if ($entity->delete())
         {

@@ -5,23 +5,19 @@ namespace YG\Phalcon\Cqrs\Query\Db;
 use Error;
 use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\Query\BuilderInterface;
-use Phalcon\Paginator\RepositoryInterface;
-use YG\Phalcon\Cqrs\Query\AbstractPaginationQuery;
-
+use Phalcon\Mvc\Model\ResultsetInterface;
 /**
- * @method static RepositoryInterface fetch(array $data = [])
+ * @method static ResultsetInterface fetch(array $data = [])
  */
-abstract class AbstractFindPaginationQuery extends AbstractPaginationQuery
+abstract class FindDbQuery extends DbQuery
 {
     use PaginationTrait;
 
-    final protected function handle(): RepositoryInterface
+    final protected function handle(): ResultsetInterface
     {
         $builder = $this->getBuilder();
         $this->addCondition($builder);
-        if ($this->getSort() != '')
-            $builder->orderBy($this->getSort());
-        return $this->fetchPagination($builder, $this->getPage(), $this->getLimit());
+        return $builder->getQuery()->execute();
     }
 
     abstract protected function getBuilder(): BuilderInterface;
@@ -36,12 +32,7 @@ abstract class AbstractFindPaginationQuery extends AbstractPaginationQuery
         else
             throw new Error('Model name not be set (' . get_called_class() . ')');
 
-        $data = $this->getData();
-        unset($data['page']);
-        unset($data['limit']);
-        unset($data['sort']);
-
-        $criteria = Criteria::fromInput($this->getDI(), $modelName, $data);
+        $criteria = Criteria::fromInput($this->getDI(), $modelName, $this->getData());
 
         if ($criteria->getWhere())
             $builder->andWhere($criteria->getConditions(), $criteria->getParams()['bind']);

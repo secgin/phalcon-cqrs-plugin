@@ -7,7 +7,7 @@ use Phalcon\Mvc\Model\Transaction\Manager;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
-abstract class AbstractCommand extends \YG\Phalcon\Cqrs\Command\AbstractCommand
+abstract class DbCommand extends \YG\Phalcon\Cqrs\Command\Command
 {
     final protected function transaction($func): CommandResultInterface
     {

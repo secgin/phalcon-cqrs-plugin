@@ -10,9 +10,10 @@ use Throwable;
 use YG\Phalcon\Cqrs\AbstractRequest;
 
 /**
- * @method mixed fetch(array $data = [])
+ * @method static mixed fetch(array $data = [])
+ * @method static Query create(array $data = [], array $columnMap = [])
  */
-abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwareInterface
+abstract class Query extends AbstractRequest implements Di\InjectionAwareInterface
 {
     private function dispatch()
     {
@@ -44,6 +45,7 @@ abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwar
         return $this->getDI()->get('queryDispatcher');
     }
 
+    #region Magic Methods
     public static function __callStatic($name, $arguments)
     {
         if ($name == 'fetch')
@@ -56,10 +58,11 @@ abstract class AbstractQuery extends AbstractRequest implements Di\InjectionAwar
         return null;
     }
 
-    #region Magic Methods
     public function __call($name, $arguments)
     {
         if ($name == 'fetch')
+            return $this->dispatch();
+        elseif ($name == 'handle')
             return $this->dispatch();
 
         return null;

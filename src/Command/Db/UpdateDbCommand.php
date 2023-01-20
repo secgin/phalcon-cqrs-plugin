@@ -7,7 +7,7 @@ use Phalcon\Di;
 use YG\Phalcon\Cqrs\Command\CommandResult;
 use YG\Phalcon\Cqrs\Command\CommandResultInterface;
 
-abstract class AbstractUpdateCommand extends AbstractCommand
+abstract class UpdateDbCommand extends DbCommand
 {
     use ModelTrait;
 
@@ -32,7 +32,12 @@ abstract class AbstractUpdateCommand extends AbstractCommand
         $entity->assign($this->getDataForModel($primaryKey));
 
         if (method_exists($this, 'beforeUpdate'))
-            $this->beforeUpdate($entity);
+        {
+            $result = $this->beforeUpdate($entity);
+
+            if (isset($result) and $result instanceof CommandResultInterface and $result->isFail())
+                return $result;
+        }
 
         if ($entity->update())
         {
