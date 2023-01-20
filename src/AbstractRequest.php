@@ -242,6 +242,9 @@ abstract class AbstractRequest
         if (method_exists($this, $methodName))
             return $this->$methodName();
 
+        if (property_exists($this, $name))
+            return $this->$name;
+
         return null;
     }
 
