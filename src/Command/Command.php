@@ -25,7 +25,7 @@ abstract class Command extends AbstractRequest implements Di\InjectionAwareInter
             try
             {
                 $this->getCommandDispatcher()->notifyEvent('beforeExecute', $this);
-                $result = $this->handle();
+                $result = $this->internalHandle();
                 $this->getCommandDispatcher()->notifyEvent('afterExecute', $this, $result);
                 return $result;
             }
@@ -42,6 +42,11 @@ abstract class Command extends AbstractRequest implements Di\InjectionAwareInter
     private function getCommandDispatcher(): DispatcherInterface
     {
         return Di::getDefault()->get('commandDispatcher');
+    }
+
+    protected function internalHandle()
+    {
+        return $this->handle();
     }
 
     #region Magic Methods
