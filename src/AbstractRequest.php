@@ -125,6 +125,9 @@ abstract class AbstractRequest
             else
                 $this->setPropertyValueOfUnBuiltin($propertyName, $propertyTypeName, $allowsNull);
         }
+
+        if (method_exists($this, 'afterAssign'))
+            $this->afterAssign();
     }
 
     private function getPropertyDefaultValue(?string $propertyTypeName)
@@ -205,8 +208,8 @@ abstract class AbstractRequest
 
         foreach ($properties as $property)
         {
-            if ($property->getDeclaringClass()->getName() != get_class($this))
-                continue;
+            //if ($property->getDeclaringClass()->getName() != get_class($this))
+            //    continue;
 
             $propertyName = $property->getName();
 
