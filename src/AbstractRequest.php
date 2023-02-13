@@ -113,9 +113,9 @@ abstract class AbstractRequest
                 continue;
             }
 
-            $value = $data[$fieldName];
+            $value = $data[$fieldName] ?? null;
 
-            if ($allowsNull and $value == '')
+            if ($allowsNull and $value === null)
                 $value = null;
             else
                 $this->setValueTypeByPropertyType($value, $propertyTypeName);
