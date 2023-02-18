@@ -25,7 +25,7 @@ abstract class FindPaginationDbQuery extends PaginationDbQuery
         if ($this->getSort() != '')
             $builder->orderBy($this->getSort());
 
-        return $this->fetchPagination($builder, $this->getPage(), $this->getLimit());
+        return $this->fetchPagination($builder, $this->page ?? 1, $this->limit ?? 10);
     }
 
     protected function addCondition(BuilderInterface $builder): void

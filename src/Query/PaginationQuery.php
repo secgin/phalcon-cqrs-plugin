@@ -2,11 +2,16 @@
 
 namespace YG\Phalcon\Cqrs\Query;
 
+/**
+ * @property ?int    $page
+ * @property ?int    $limit
+ * @property ?string $sort
+ */
 abstract class PaginationQuery extends Query
 {
-    protected int $page = 1;
+    protected ?int $page = null;
 
-    protected int $limit = 10;
+    protected ?int $limit = null;
 
     protected ?string $sort = null;
 
@@ -15,19 +20,9 @@ abstract class PaginationQuery extends Query
         $this->page = $value == 0 ? 1 : $value;
     }
 
-    public function getPage(): int
-    {
-        return $this->page == 0 ? 1 : $this->page;
-    }
-
     protected function setLimit(int $value): void
     {
         $this->limit = $value;
-    }
-
-    public function getLimit(): int
-    {
-        return $this->limit == 0 ? 10 : $this->limit;
     }
 
     protected function setSort(?string $value): void
