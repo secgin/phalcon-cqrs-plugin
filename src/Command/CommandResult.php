@@ -40,13 +40,17 @@ final class CommandResult implements CommandResultInterface
 
     /**
      * @param string|string[]|null $message
-     * @param Exception|null       $exception
      *
      * @return static
      */
     static public function fail($message): self
     {
         return new CommandResult(false, $message, null);
+    }
+
+    static public function failNotFound(): self
+    {
+        return new CommandResult(false, 'Kayıt bulunamadı', null);
     }
 
     public function isSuccess(): bool
