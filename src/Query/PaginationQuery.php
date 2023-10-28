@@ -35,9 +35,16 @@ abstract class PaginationQuery extends Query
         if ($this->sort == '')
             return null;
 
-        if ($this->sort[0] == '-')
-            return substr($this->sort, 1, strlen($this->sort) - 1) . ' desc';
+        $sortFields = explode(',', $this->sort);
+        foreach ($sortFields as $index => $name)
+        {
+            $name = trim($name);
+            if ($name == '')
+                continue;
 
-        return $this->sort;
+            if ($name[0] =='-')
+                $sortFields[$index] = ltrim($name, '-') . ' desc';
+        }
+        return join(',', $sortFields);
     }
 }
