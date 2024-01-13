@@ -2,10 +2,9 @@
 
 namespace YG\Phalcon\Cqrs\Command;
 
-use Phalcon\Exception;
 use Phalcon\Messages\Message;
 
-final class CommandResult implements CommandResultInterface
+class CommandResult implements CommandResultInterface
 {
     private bool $success;
 
