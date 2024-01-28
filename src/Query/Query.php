@@ -28,6 +28,10 @@ abstract class Query extends AbstractRequest implements Di\InjectionAwareInterfa
             {
                 $result = $this->handle();
                 $this->getQueryDispatcher()->notifyEvent('afterFetch', $this, $result);
+
+                if (method_exists($this, 'afterHandle'))
+                    $this->afterHandle($result);
+
                 return $result;
             }
             catch (Exception|Error|Throwable $ex)
